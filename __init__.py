@@ -34,7 +34,7 @@ def on_reviewer_did_show_question(card):
         pass
 
 try:
-    gui_hooks.reviewer_did_init.append(on_reviewer_did_init)
+#    gui_hooks.reviewer_did_init.append(on_reviewer_did_init)
     gui_hooks.reviewer_did_show_question.append(on_reviewer_did_show_question)
 except:
     pass
