@@ -41,6 +41,26 @@ def on_reviewer_did_show_answer():
 addHook("reviewerDidShowQuestion", on_reviewer_did_show_question)
 addHook("reviewerDidShowAnswer", on_reviewer_did_show_answer)
 
+# Try additional hooks that might fire when entering review mode
+def on_state_change(new_state, old_state):
+    logger.info(f"State changed from {old_state} to {new_state}")
+    if new_state == "review":
+        logger.info("Entered review state via state change hook")
+        auto_enable_auto_advance()
+
+def on_reviewer_will_show_question():
+    logger.info("on_reviewer_will_show_question() triggered")
+    auto_enable_auto_advance()
+
+def on_reviewer_will_show_answer():
+    logger.info("on_reviewer_will_show_answer() triggered")
+    auto_enable_auto_advance()
+
+# Add more hooks
+addHook("stateChange", on_state_change)
+addHook("reviewerWillShowQuestion", on_reviewer_will_show_question)
+addHook("reviewerWillShowAnswer", on_reviewer_will_show_answer)
+
 # Also try to enable it when the addon loads
 logger.info("Auto Advance Enabler addon loaded")
 auto_enable_auto_advance()
