@@ -8,7 +8,8 @@ def auto_enable_auto_advance(reviewer=None):
         if not target_reviewer:
             return
         
-        if mw.state == "review" or reviewer:
+        # Only enable if we're actually in review state
+        if mw.state == "review":
             if hasattr(target_reviewer, 'auto_advance_enabled'):
                 if not target_reviewer.auto_advance_enabled:
                     if hasattr(target_reviewer, 'toggle_auto_advance'):
@@ -35,10 +36,5 @@ def on_reviewer_did_show_question(card):
 try:
     gui_hooks.reviewer_did_init.append(on_reviewer_did_init)
     gui_hooks.reviewer_did_show_question.append(on_reviewer_did_show_question)
-except:
-    pass
-
-try:
-    auto_enable_auto_advance()
 except:
     pass
