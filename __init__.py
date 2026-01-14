@@ -16,15 +16,21 @@ def auto_enable_auto_advance(reviewer=None):
     if mw.state == "review" or reviewer:
         logger.info("In review state or reviewer provided, attempting to enable auto advance")
         
-        # Try different possible attributes for auto advance
-        if hasattr(target_reviewer, 'auto_advance'):
-            target_reviewer.auto_advance = True
-            logger.info("Set reviewer.auto_advance = True")
-        elif hasattr(target_reviewer, '_auto_advance'):
-            target_reviewer._auto_advance = True
-            logger.info("Set reviewer._auto_advance = True")
+        # Enable auto advance using the correct attribute
+        if hasattr(target_reviewer, 'auto_advance_enabled'):
+            if not target_reviewer.auto_advance_enabled:
+                # Use toggle_auto_advance to enable it
+                if hasattr(target_reviewer, 'toggle_auto_advance'):
+                    target_reviewer.toggle_auto_advance()
+                    logger.info("Toggled auto advance on using toggle_auto_advance()")
+                else:
+                    # Fallback to setting the attribute directly
+                    target_reviewer.auto_advance_enabled = True
+                    logger.info("Set auto_advance_enabled = True directly")
+            else:
+                logger.info("Auto advance already enabled")
         else:
-            logger.info("Reviewer does not have auto_advance attribute")
+            logger.info("Reviewer does not have auto_advance_enabled attribute")
             # Log all attributes to see what's available
             attrs = [attr for attr in dir(target_reviewer) if 'advance' in attr.lower()]
             logger.info(f"Available advance-related attributes: {attrs}")
