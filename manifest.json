@@ -1,0 +1,9 @@
+{
+    "package": "auto_advance_enabler",
+    "name": "Auto Advance Enabler",
+    "mod": 1640995200,
+    "min_point_version": 45,
+    "max_point_version": 0,
+    "branch_index": 0,
+    "description": "Automatically enables auto advance when reviewing cards"
+}
