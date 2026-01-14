@@ -1,23 +1,34 @@
-from aqt import mw
+from aqt import mw, gui_hooks
 from aqt.utils import showInfo
-from anki.hooks import addHook
 import logging
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def auto_enable_auto_advance():
+def auto_enable_auto_advance(reviewer=None):
     """Automatically enable auto advance when reviewing"""
     logger.info("auto_enable_auto_advance() called")
-    if mw.state == "review":
-        logger.info("In review state, attempting to enable auto advance")
-        # Enable auto advance in the reviewer
-        if hasattr(mw.reviewer, 'auto_advance'):
-            mw.reviewer.auto_advance = True
-            logger.info("Set mw.reviewer.auto_advance = True")
+    
+    # If reviewer is passed as argument, use it; otherwise use mw.reviewer
+    target_reviewer = reviewer if reviewer else mw.reviewer
+    
+    if mw.state == "review" or reviewer:
+        logger.info("In review state or reviewer provided, attempting to enable auto advance")
+        
+        # Try different possible attributes for auto advance
+        if hasattr(target_reviewer, 'auto_advance'):
+            target_reviewer.auto_advance = True
+            logger.info("Set reviewer.auto_advance = True")
+        elif hasattr(target_reviewer, '_auto_advance'):
+            target_reviewer._auto_advance = True
+            logger.info("Set reviewer._auto_advance = True")
         else:
-            logger.info("mw.reviewer does not have auto_advance attribute")
+            logger.info("Reviewer does not have auto_advance attribute")
+            # Log all attributes to see what's available
+            attrs = [attr for attr in dir(target_reviewer) if 'advance' in attr.lower()]
+            logger.info(f"Available advance-related attributes: {attrs}")
+        
         # Also set the config if available
         config = mw.addonManager.getConfig(__name__)
         if config:
@@ -27,39 +38,19 @@ def auto_enable_auto_advance():
     else:
         logger.info(f"Not in review state, current state: {mw.state}")
 
-def on_reviewer_did_show_question():
+def on_reviewer_did_init(reviewer):
+    """Hook that runs when reviewer is initialized"""
+    logger.info("on_reviewer_did_init() triggered - reviewer initialized!")
+    auto_enable_auto_advance(reviewer)
+
+def on_reviewer_did_show_question(card):
     """Hook that runs when a question is shown"""
     logger.info("on_reviewer_did_show_question() triggered")
     auto_enable_auto_advance()
 
-def on_reviewer_did_show_answer():
-    """Hook that runs when an answer is shown"""
-    logger.info("on_reviewer_did_show_answer() triggered")
-    auto_enable_auto_advance()
-
-# Add hooks to enable auto advance
-addHook("reviewerDidShowQuestion", on_reviewer_did_show_question)
-addHook("reviewerDidShowAnswer", on_reviewer_did_show_answer)
-
-# Try additional hooks that might fire when entering review mode
-def on_state_change(new_state, old_state):
-    logger.info(f"State changed from {old_state} to {new_state}")
-    if new_state == "review":
-        logger.info("Entered review state via state change hook")
-        auto_enable_auto_advance()
-
-def on_reviewer_will_show_question():
-    logger.info("on_reviewer_will_show_question() triggered")
-    auto_enable_auto_advance()
-
-def on_reviewer_will_show_answer():
-    logger.info("on_reviewer_will_show_answer() triggered")
-    auto_enable_auto_advance()
-
-# Add more hooks
-addHook("stateChange", on_state_change)
-addHook("reviewerWillShowQuestion", on_reviewer_will_show_question)
-addHook("reviewerWillShowAnswer", on_reviewer_will_show_answer)
+# Use new style hooks
+gui_hooks.reviewer_did_init.append(on_reviewer_did_init)
+gui_hooks.reviewer_did_show_question.append(on_reviewer_did_show_question)
 
 # Also try to enable it when the addon loads
 logger.info("Auto Advance Enabler addon loaded")
